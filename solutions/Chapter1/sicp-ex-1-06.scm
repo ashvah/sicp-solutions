@@ -24,7 +24,9 @@
 (define (square x)
   (* x x))
 
+(sqrt 9)
+
 ; out of memory
 ; my interpreter use applicative-order evaluation
-; 'if' is special form which only calculates one clause
-; but 'new-if' calculate both two clauses
+; 'if' is special form which only evaluates one clause, even in applicative-order evaluation
+; but 'new-if' evaluates both two clauses so it need to evaluate sqrt-iter as else-clause, which enters an infinite loop

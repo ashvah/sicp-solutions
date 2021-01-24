@@ -1,0 +1,11 @@
+#lang sicp
+(define (* a b)
+  (define (double x) (+ x x))
+  (define (halve x) (/ x 2))
+  (define (even? x)
+    (= (remainder x 2) 0))
+  (define (times p a b)
+    (cond ((= b 0) p)
+        ((even? b) (times p (double a) (halve b)))
+        (else (times (+ p a) a (- b 1)))))
+  (times 0 a b))

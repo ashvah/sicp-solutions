@@ -11,3 +11,4 @@
   (fast-expt 1 b n))
 
 (expt 2 16)
+; 65536

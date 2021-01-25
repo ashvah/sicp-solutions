@@ -1,0 +1,47 @@
+#lang sicp
+(define (square x) (* x x))
+
+(define (expmod base exp m)
+  (cond ((= exp 0) 1)
+        ((even? exp)
+         (remainder (square (expmod base (/ exp 2) m))
+                    m))
+        (else
+         (remainder (* base (expmod base (- exp 1) m))
+                    m))))        
+
+(define (prime? n)
+  (define (fermat-test)
+  (define (try-it a)
+    (= (expmod a n n) a))
+  (try-it (+ 1 (random (- n 1)))))
+  (define (fast-prime? times)
+  (cond ((= times 0) true)
+        ((fermat-test) (fast-prime? (- times 1)))
+        (else false)))
+  (fast-prime? 10))
+
+(define (timed-prime-test n)
+  (start-prime-test n (runtime)))
+
+(define (start-prime-test n start-time)
+  (define (report-prime elapsed-time)
+  (display n)
+  (display " *** ")
+  (display elapsed-time)
+  (newline))
+  (if (prime? n)
+      (report-prime (- (runtime) start-time))))
+
+(define (search-for-primes a b)
+  (define (search n)
+    (cond ((<= n b) (timed-prime-test n) (search (+ n 2)))))
+  (search (if (even? a) (+ a 1) a)))
+
+(search-for-primes 1000 1020)
+(newline)
+(search-for-primes 10000 10038)
+(newline)
+(search-for-primes 100000 100045)
+(newline)
+(search-for-primes 1000000 1000038)

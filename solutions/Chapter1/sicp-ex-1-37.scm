@@ -1,7 +1,5 @@
 #lang sicp
 
-(define (average x y) (/ (+ x y) 2))
-
 (define tolerance 0.00005)
 
 ; a)

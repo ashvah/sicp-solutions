@@ -6,3 +6,4 @@
 (define (square x) (* x x))
 
 ((compose square inc) 6)
+; 49

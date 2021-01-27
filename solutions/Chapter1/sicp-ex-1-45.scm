@@ -25,6 +25,7 @@
           ((= (remainder n 2) 0) (square (exp base (/ n 2))))
           (else (* base (exp base (- n 1))))))
 
+; n-root need (lg n)-average-damp
 (define (n-root x n)
   (define (lg x)
     (if (<= x 1)
@@ -40,3 +41,8 @@
 (check 2 3)
 (check 2 4)
 (check 2 5)
+; 0
+; 4.510614104447086e-012
+; 1.1172915549861884e-005
+; 4.440892098500626e-016
+; 2.7020674051803084e-005

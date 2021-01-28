@@ -3,7 +3,7 @@
 (define (make-interval a b) (cons a b))
 
 (define (upper-bound z)
-  (cdr z))
+  (max (car z) (cdr z)))
 
 (define (lower-bound z)
-  (car z))
+  (min (car z) (cdr z)))

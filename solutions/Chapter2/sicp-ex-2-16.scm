@@ -8,4 +8,4 @@
 ; [1,2]=[1,2] is not necessarily true 
 ; so (a+b)c=ac+bc and other expressions may be false
 ; I'm not sure whether it's possible to overcomes these problems
-; maybe we can do this if we can Check the address of the arguments before passing it
+; maybe we can do this if we can check the address of the arguments before passing it

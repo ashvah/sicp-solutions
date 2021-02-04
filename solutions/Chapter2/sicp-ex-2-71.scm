@@ -30,4 +30,4 @@
 ;                                                                  /  \
 ;                                                                 i    j
 ;
-; 1-bit ~ n-bit
+; 1-bit ~ n-1 -bit

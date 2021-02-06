@@ -21,5 +21,5 @@
   (let ((x-tag (type-tag x))
         (y-tag (type-tag y)))
     (if (eq? x-tag y-tag)
-        (apply-generic equ x y)
+        (apply-generic 'equ x y)
         false)))

@@ -1,0 +1,18 @@
+#lang sicp
+
+(define (install-rational-package)
+  (define (make-rat n d) (cons n d)) 
+  (define (add-rat x y)
+    (make-rat (add (mul (numer x) (denom y))
+                   (mul (numer y) (demom x))) 
+              (mul (denom x) (demom y)))) 
+  (define (sub-rat x y)
+    (make-rat (sub (mul (numer x) (denom y))
+                   (mul (numer y) (demom x))) 
+              (mul (denom x) (demom y)))) 
+  (define (mul-rat x y)
+    (make-rat (mul (numer x) (numer y))
+              (mul (denom x) (denom y))))
+  (define (div-rat x y)
+    (make-rat (mul (numer x) (denom y))
+              (mul (denom x) (numer y))))) 

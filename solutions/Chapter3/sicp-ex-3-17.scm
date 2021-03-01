@@ -1,29 +1,16 @@
 #lang sicp
 
 (define (count-pairs x)
-  (define (find list-of-old y)
-    (if (null? list-of-old)
-        #f
-        (if (eq? (car list-of-old) y)
-            #t
-            (find (cdr list-of-old) y))))
-  (define (iter list-to-count list-of-old)
-    (if (not (pair? list-to-count))
-        0
-        (let ((new-car (find list-of-old (car list-to-count)))
-              (new-cdr (find list-of-old (cdr list-to-count))))
-          (if new-car
-              (if new-cdr
-                  1
-                  (+ 1 (iter (cdr list-to-count) (cons (cdr list-to-count) list-of-old))))
-              (if new-cdr
-                  (+ 1 (iter (car list-to-count) (cons (car list-to-count) list-of-old)))
-                  (if (eq? (car list-to-count) (cdr list-to-count))
-                      (+ 1 (iter (car list-to-count) (cons (car list-to-count) list-of-old)))
-                      (+ 1
-                         (iter (car list-to-count) (cons (car list-to-count) (cons (cdr list-to-count) list-of-old)))
-                         (iter (cdr list-to-count) (cons (car list-to-count) (cons (cdr list-to-count) list-of-old))))))))))
-  (iter x (list x)))
+  (let ((list-counted '()))
+    (define (iter list-to-count)
+      (if (or (not (pair? list-to-count)) (memq list-to-count list-counted))
+          0
+          (begin
+            (set! list-counted (cons list-to-count list-counted))
+            (+ (iter (car list-to-count))
+               (iter (cdr list-to-count))
+               1))))
+    (iter x)))
 
 (define x (cons 'a 'b))
 (define y (cons 'c 'd))

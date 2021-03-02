@@ -39,7 +39,7 @@
           (display (car front))
           (display "->")
           (traverse (cdr front)))))
-  (traverse (car q)))
+  (traverse (front-ptr q)))
 
 (define q1 (make-queue))
 

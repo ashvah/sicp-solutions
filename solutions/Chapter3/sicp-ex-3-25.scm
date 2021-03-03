@@ -10,7 +10,7 @@
     (define (lookup key-list)
       (define (lookup-iter table key-list)
         (if (null? key-list)
-            (cdr table)
+            (cdr (assoc '* (cdr table)))
             (let ((subtable (assoc (car key-list) (cdr table))))
               (if subtable
                   (lookup-iter subtable (cdr key-list))
@@ -20,7 +20,7 @@
     (define (insert! key-list value)
       (define (insert-iter table key-list)
         (if (null? key-list)
-            (set-cdr! table value)
+            (set-cdr! table (list (cons '* value)))
             (let ((subtable (assoc (car key-list) (cdr table))))
               (if subtable
                   (insert-iter subtable (cdr key-list))
@@ -45,7 +45,11 @@
 (put '(math c) 98.12)
 (put '(english d) 83.29)
 (put '(english e) 80.92)
-(put '(english c) 88.45)
+(put '(english d 2021-3-2) 88.45)
+(get '(english d))
+; 83.29
+(get '(english d 2021-3-2))
+; 88.45
 (get '(math c))
 ; 98.12
 (get '(english e))

@@ -152,7 +152,6 @@
 (define (probe name wire)
   (add-action! wire
                (lambda ()        
-                 (newline)
                  (display name)
                  (display " ")
                  (display (current-time the-agenda))
@@ -206,7 +205,7 @@
   (add-action! input invert-input)
   'ok)
 ;------------------------------------------------------------
-; half-adder
+; adder
 (define (half-adder a b s c)
   (let ((d (make-wire)) (e (make-wire)))
     (or-gate a b d)
@@ -214,21 +213,105 @@
     (inverter c e)
     (and-gate d e s)
     'ok))
+
+(define (full-adder a b c-in sum c-out)
+  (let ((s (make-wire))
+        (c1 (make-wire))
+        (c2 (make-wire)))
+    (half-adder b c-in s c1)
+    (half-adder a s sum c2)
+    (or-gate c1 c2 c-out)
+    'ok))
+
+(define (ripple-carry-adder A B S C)
+  (define (iter A B S c)
+    (if (null? A)
+        (set-signal! c 0)
+        (begin
+          (let ((c-in (make-wire)))
+            (iter (cdr A) (cdr B) (cdr S) c-in)
+            (full-adder (car A) (car B) c-in (car S) c)))))
+  (iter (cdr A) (cdr B) (cdr S) (cadr C)))
+;------------------------------------------------------------
+; n-bit data bus
+(define (data-bus label n)
+  (let ((bits '()))
+    (define (iter n)
+      (if (= n 0)
+          'done
+          (begin
+            (set! bits (cons (make-wire) bits))
+            (iter (- n 1)))))
+    (iter n)
+    (cons label bits)))
+
+(define (set-data! db value)
+  (define (iter list value)
+    (if (null? list)
+        'done
+        (begin
+          (set-signal! (car list) (car value))
+          (iter (cdr list) (cdr value)))))
+  (iter (cdr db) value))
+
+(define (output-data db)
+  (define (print-data list)
+    (if (null? list)
+        (display "\n")
+        (begin
+          (display (get-signal (car list)))
+          (print-data (cdr list)))))
+  (display (car db))
+  (display ": ")
+  (print-data (cdr db)))
 ;------------------------------------------------------------
 ; test
-(define input-1 (make-wire))
-(define input-2 (make-wire))
-(define sum (make-wire))
-(define carry (make-wire))
-(probe 'sum sum)
-; sum 0  New-value = 0
-(probe 'carry carry)
-; carry 0  New-value = 0
-(half-adder input-1 input-2 sum carry)
-(set-signal! input-1 1)
+(define A (data-bus 'input-1 8))
+(define B (data-bus 'input-2 8))
+(define S (data-bus 'sum 8))
+(define C (data-bus 'carry 1))
+(ripple-carry-adder A B S C)
+
+; test-1
+(set-data! A '(0 0 0 0 0 0 0 1))
+(set-data! B '(0 0 0 0 0 0 1 1))
 (propagate)
-; sum 8  New-value = 1
-(set-signal! input-2 1)
+(output-data A)
+(output-data B)
+(output-data S)
+(output-data C)
+; 1+11=100
+; carry=0
+
+; test-2
+(set-data! A '(0 0 0 0 1 0 0 1))
+(set-data! B '(0 1 0 1 1 0 1 1))
 (propagate)
-; carry 11  New-value = 1
-; sum 16  New-value = 0
+(output-data A)
+(output-data B)
+(output-data S)
+(output-data C)
+; 1001+1011011=01100100
+; carry=0
+
+; test-3
+(set-data! A '(1 1 1 1 1 1 1 1))
+(set-data! B '(1 1 0 1 1 0 1 1))
+(propagate)
+(output-data A)
+(output-data B)
+(output-data S)
+(output-data C)
+; 11111111+1011011=11011010
+; carry=1
+
+; test-4
+(set-data! A '(0 0 1 1 1 1 1 1))
+(set-data! B '(1 0 0 1 1 0 1 1))
+(propagate)
+(output-data A)
+(output-data B)
+(output-data S)
+(output-data C)
+; 111111+1001011=11011010
+; carry=0

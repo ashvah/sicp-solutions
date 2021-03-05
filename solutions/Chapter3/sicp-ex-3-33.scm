@@ -30,3 +30,11 @@
   (connect b me)
   (connect c me)
   me)
+
+(define (averager a b c)
+  (let ((d (make-connector))
+        (e (make-connector)))
+    (adder a b d)
+    (multiplier c e d)
+    (constant 2 e)
+    'ok))

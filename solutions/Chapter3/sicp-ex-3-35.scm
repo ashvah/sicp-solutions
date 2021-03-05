@@ -11,7 +11,7 @@
   (define (process-forget-value)
     (forget-value! a me)
     (forget-value! b me)
-    (process-new-value)))
+    (process-new-value))
   (define (me request)
     (cond ((eq? request 'I-have-a-value)
            (process-new-value))

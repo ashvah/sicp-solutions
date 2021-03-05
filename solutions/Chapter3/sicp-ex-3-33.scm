@@ -25,7 +25,7 @@
           ((eq? request 'I-lost-my-value) 
            (process-forget-value))
           (else 
-           (error "Unknown request -- ADDER" request))))
+           (error "Unknown request -- AVERAGER" request))))
   (connect a me)
   (connect b me)
   (connect c me)

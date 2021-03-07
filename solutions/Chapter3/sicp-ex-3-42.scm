@@ -1,5 +1,5 @@
 #lang sicp
 
-; It's safe
+; It's safe(maybe, since I don't know the implemention of (make-serializer))
 ; There is not differences in the concurrency.
-; but new version only make-serializer once, when defining the account
+; but new version only creat protected process once, when defining the account

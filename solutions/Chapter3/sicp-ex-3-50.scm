@@ -4,6 +4,6 @@
   (if (stream-null? (car argstreams))
       the-empty-stream
       (cons-stream
-        (apply proc stream-car argstreams))
+        (apply proc stream-car argstreams)
         (apply stream-map
                (cons proc (map stream-cdr s argstreams))))))

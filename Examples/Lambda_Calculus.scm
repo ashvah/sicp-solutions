@@ -3,48 +3,53 @@
 ;----------------------------------------
 ; definition of natural numbers
 
-(define zero
+(define zero-nat
   (lambda (f x) x))
 
-(define (succ n)
+(define (succ-nat n)
   (lambda (f x)
     (f (n f x))))
 
-(define (add a b)
+(define (add-nat a b)
   (lambda (f x)
     (a f (b f x))))
 
-(define (pred n)
+(define (pred-nat n)
   (lambda (f x)
     ((n (lambda (g) (lambda (h) (h (g f))))
         (lambda (u) x))
      (lambda (u) u))))
 
-(define (sub a b)
-  (b pred a))
+(define (sub-nat a b)
+  (b pred-nat a))
 
-(define (mul a b)
+(define (mul-nat a b)
   (lambda (f x)
     (a (lambda (x) (b f x)) x)))
+
+(define (exp-nat a b)
+  (lambda (f x) ((b (lambda (f) (lambda (x) (a f x))) f) x)))
 
 (define (display-nat n) (n inc 0))
 
 ; test
 
-(display-nat zero)
+(display-nat zero-nat)
 ; 0 
-(define five (add (succ (succ (succ zero))) (succ (succ zero))))
-(display-nat five)
+(define five-nat (add-nat (succ-nat (succ-nat (succ-nat zero-nat))) (succ-nat (succ-nat zero-nat))))
+(display-nat five-nat)
 ; 5
-(define four (pred five))
-(display-nat four)
+(define four-nat (pred-nat five-nat))
+(display-nat four-nat)
 ; 4
-(define one (sub five four))
-(display-nat one)
+(define one-nat (sub-nat five-nat four-nat))
+(display-nat one-nat)
 ; 1
-(define twenty (mul four five))
-(display-nat twenty)
+(define twenty-nat (mul-nat four-nat five-nat))
+(display-nat twenty-nat)
 ; 20
+(display-nat (exp-nat five-nat four-nat))
+; 625
 
 ;------------------------------------------
 ; definition of boolean
@@ -69,20 +74,20 @@
 (define (iszero? n)
   (n (lambda (f) false) true))
 
-(define (equal? x y)
-  (and (iszero? (sub  x y)) (iszero? (sub y x))))
+(define (equal-nat? x y)
+  (and (iszero? (sub-nat  x y)) (iszero? (sub-nat y x))))
 
 (define (display-bool x) (test x 'true 'false))
 
 ; test
 
-(display-bool (iszero? zero))
+(display-bool (iszero? zero-nat))
 ; true
-(display-bool (iszero? one))
+(display-bool (iszero? one-nat))
 ; false
-(display-bool (equal? one one))
+(display-bool (equal-nat? one-nat one-nat))
 ; true
-(display-bool (equal? one four))
+(display-bool (equal-nat? one-nat four-nat))
 ; false
 
 ;------------------------------------------
@@ -99,8 +104,13 @@
 
 ; test
 
-(define pair-test (pair four five))
-(display-nat (fst pair-test))
+(define p-nat (pair four-nat five-nat))
+(display-nat (fst p-nat))
 ; 4
-(display-nat (snd pair-test))
+(display-nat (snd p-nat))
 ; 5
+(define p-bool (pair true false))
+(display-bool (fst p-bool))
+; true
+(display-bool (snd p-bool))
+; false

@@ -249,7 +249,7 @@
 (define (let-body exp)
   (cddr exp))
 
-(define (let-combination exp env)
+(define (let-combination exp)
   (cons 'call (cons (make-lambda (let-vars exp) (let-body exp)) (let-exps exp))))
 
 (define eval-let

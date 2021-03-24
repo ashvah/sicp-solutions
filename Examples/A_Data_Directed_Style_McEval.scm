@@ -255,6 +255,21 @@
 (define eval-let
   (lambda (exp env) (eval (let-combination exp) env)))
 
+(define (make-let var-exp body)
+  (cons 'let (cons var-exp body)))
+
+; let*
+(define (let*->nested-lets exp)
+  (define (let*->nested-lets-iter var-exp body)
+    (cond ((null? var-exp) (make-let '() body))
+          ((null? (cdr var-exp)) (make-let (list (car var-exp)) body))
+          (else (make-let (list (car var-exp))
+                          (list (let*->nested-lets-iter (cdr var-exp) body))))))
+  (let*->nested-lets-iter (cadr exp) (let-body exp)))
+
+(define eval-let*
+  (lambda (exp env) (eval (let*->nested-lets exp) env)))
+
 ; install
 (put 'eval 'quote eval-quote)
 (put 'eval 'set! eval-assignment)
@@ -266,7 +281,8 @@
 (put 'eval 'call eval-call)
 (put 'eval 'and eval-and)
 (put 'eval 'or eval-or)
-(put 'eval 'let let-combination)
+(put 'eval 'let eval-let)
+(put 'eval 'let* eval-let*)
 
 ; eval
 (define (eval exp env)

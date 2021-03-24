@@ -12,7 +12,7 @@
 (define (let-body exp)
   (cddr exp))
 
-(define (let-combination exp env)
+(define (let-combination exp)
   (cons 'call (cons (make-lambda (let-vars exp) (let-body exp)) (let-exps exp))))
 
 (define eval-let
@@ -20,5 +20,5 @@
 
 (put 'eval 'let let-combination)
 
-(let-combination '(let ((x 1) (y 2)) (+ x y)) '())
+(let-combination '(let ((x 1) (y 2)) (+ x y)))
 ; (call (lambda (x y) (+ x y)) 1 2)

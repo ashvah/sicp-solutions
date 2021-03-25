@@ -173,8 +173,8 @@
 
 (define (cond-actions clause) (cdr clause))
 
-(define (cond->if exp)
-  (expand-clauses (cond-clauses exp)))
+(define (cond->if exp env)
+  (expand-clauses (cond-clauses exp) env))
 
 (define (cond-test-clause? clause)
   (eq? (car (cond-actions clause)) '=>))
@@ -182,7 +182,7 @@
 (define (cond-recipient clause)
   (cadr (cond-actions clause)))
 
-(define (expand-clauses clauses)
+(define (expand-clauses clauses env)
   (if (null? clauses)
       'false                         
       (let ((first (car clauses))
@@ -193,20 +193,17 @@
                 (error "ELSE clause isn't last -- COND->IF"
                        clauses))
             (if (cond-test-clause? first)
-                (list 'call
-                      (make-lambda 'test-variable
-                                  (list (make-if 'test-variable
-                                                 (list 'call (cond-recipient first) 'test-variable)
-                                                 (expand-clauses rest))))
-                      (cond-predicate first))
+                (let ((result (eval (cond-predicate first) env)))
+                  (make-if result
+                           (list 'call (cond-recipient first) 'test-variable)
+                           (expand-clauses rest env)))
                 (make-if (cond-predicate first)
                          (sequence->exp (cond-actions first))
-                         (expand-clauses rest)))))))
+                         (expand-clauses rest env)))))))
 
 (define eval-cond
   (lambda (exp env)
-    (eval (cond->if exp) env)))
-
+    (eval (cond->if exp env) env)))
 
 ; and-or
 (define (get-clauses exp) (cdr exp))
@@ -241,16 +238,26 @@
 
 ; let
 (define (let-vars exp)
-  (map car (cadr exp)))
+  (if (pair? (cadr exp))
+      (map car (cadr exp))
+      (map car (caddr exp))))
 
 (define (let-exps exp)
-  (map cadr (cadr exp)))
+  (if (pair? (cadr exp))
+      (map cadr (cadr exp))
+      (map cadr (caddr exp))))
 
 (define (let-body exp)
-  (cddr exp))
+  (if (pair? (cadr exp))
+      (cddr exp)
+      (cdddr exp)))
 
 (define (let-combination exp)
-  (cons 'call (cons (make-lambda (let-vars exp) (let-body exp)) (let-exps exp))))
+  (if (pair? (cadr exp))
+      (cons 'call (cons (make-lambda (let-vars exp) (let-body exp)) (let-exps exp)))
+      (list (make-lambda '()
+            (list (list 'define (cadr exp) (make-lambda (let-vars exp) (let-body exp)))
+                  (cons 'call (cons (cadr exp) (let-exps exp))))))))
 
 (define eval-let
   (lambda (exp env) (eval (let-combination exp) env)))

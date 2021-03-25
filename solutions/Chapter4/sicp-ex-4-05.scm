@@ -121,7 +121,7 @@
 (define (cond-recipient clause)
   (cadr (cond-actions clause)))
 
-(define (expand-clauses clauses)
+(define (expand-clauses clauses env)
   (if (null? clauses)
       'false                         
       (let ((first (car clauses))
@@ -132,20 +132,15 @@
                 (error "ELSE clause isn't last -- COND->IF"
                        clauses))
             (if (cond-test-clause? first)
-                (list 'call
-                      (make-lambda 'test-variable
-                                  (list (make-if 'test-variable
-                                                 (list 'call (cond-recipient first) 'test-variable)
-                                                 (expand-clauses rest))))
-                      (cond-predicate first))
+                (let ((result (eval (cond-predicate first) env)))
+                  (make-if result
+                           (list 'call (cond-recipient first) 'test-variable)
+                           (expand-clauses rest env)))
                 (make-if (cond-predicate first)
                          (sequence->exp (cond-actions first))
-                         (expand-clauses rest)))))))
+                         (expand-clauses rest env)))))))
 
 ;----------------------------------------------------
 
-(expand-clauses '(((eq? x 2) => inc) ((eq? x 1) (inc x)) (else false)))
-; (call
-;  (lambda test-variable
-;    (if test-variable (call inc test-variable) (if (eq? x 1) (inc x) false)));
-;  (eq? x 2))
+(expand-clauses '(((eq? x 2) => inc) ((eq? x 1) (inc x)) (else x)) '())
+; (if true/false (call inc test-variable) (if (eq? x 1) (inc x) x))

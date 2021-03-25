@@ -77,6 +77,13 @@
 (define (make-if predicate consequent alternative)
   (list 'if predicate consequent alternative))
 
+; true&false
+(define (true? x)
+  (not (eq? x false)))
+
+(define (false? x)
+  (eq? x false))
+
 ; begin
 (define (eval-sequence exps env)
   (cond ((last-exp? exps) (eval (first-exp exps) env))
@@ -277,7 +284,7 @@
 (define eval-let*
   (lambda (exp env) (eval (let*->nested-lets exp) env)))
 
-; install
+; eval
 (put 'eval 'quote eval-quote)
 (put 'eval 'set! eval-assignment)
 (put 'eval 'define eval-definition)
@@ -291,7 +298,6 @@
 (put 'eval 'let eval-let)
 (put 'eval 'let* eval-let*)
 
-; eval
 (define (eval exp env)
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
@@ -300,3 +306,95 @@
                 (if proc
                     (proc exp env)
                     (error "Unknown expression type -- EVAL" exp))))))
+
+; procedure
+(define (make-procedure parameters body env)
+  (list 'procedure parameters body env))
+
+(define (procedure-parameters p) (cadr p))
+(define (procedure-body p) (caddr p))
+(define (procedure-environment p) (cadddr p))
+
+(define apply-procedure
+  (lambda (procedure arguments)
+    (eval-sequence (procedure-body procedure)
+                   (extend-environment (procedure-parameters procedure)
+                                       arguments
+                                       (procedure-environment procedure)))))
+
+; apply
+(put 'apply 'procedure apply-procedure)
+
+(define (apply procedure arguments)
+  (cond ((primitive-procedure? procedure)
+         (apply-primitive-procedure procedure arguments))
+        ((let ((proc (get 'apply (car procedure))))
+           (if proc
+               (proc procedure arguments)
+               (error "Unknown procedure type -- APPLY" procedure))))))
+
+;-------------------------------------------------------------------------------
+; environment
+
+(define (enclosing-environment env) (cdr env))
+
+(define (first-frame env) (car env))
+
+(define the-empty-environment '())
+
+(define (make-frame variables values)
+  (cons variables values))
+
+(define (frame-variables frame) (car frame))
+(define (frame-values frame) (cdr frame))
+
+(define (add-binding-to-frame! var val frame)
+  (set-car! frame (cons var (car frame)))
+  (set-cdr! frame (cons val (cdr frame))))
+
+(define (extend-environment vars vals base-env)
+  (if (= (length vars) (length vals))
+      (cons (make-frame vars vals) base-env)
+      (if (< (length vars) (length vals))
+          (error "Too many arguments supplied" vars vals)
+          (error "Too few arguments supplied" vars vals))))
+
+
+(define (lookup-variable-value var env)
+  (define (env-loop env)
+    (define (scan vars vals)
+      (cond ((null? vars) (env-loop (enclosing-environment env)))
+            ((eq? var (car vars)) (car vals))
+            (else (scan (cdr vars) (cdr vals)))))
+    (if (eq? env the-empty-environment)
+        (error "Unbound variable" var)
+        (let ((frame (first-frame env)))
+          (scan (frame-variables frame)
+                (frame-values frame)))))
+  (env-loop env))
+
+(define (set-variable-value! var val env)
+  (define (env-loop env)
+    (define (scan vars vals)
+      (cond ((null? vars) (env-loop (enclosing-environment env)))
+            ((eq? var (car vars)) (set-car! vals val))
+            (else (scan (cdr vars) (cdr vals)))))
+    (if (eq? env the-empty-environment)
+        (error "Unbound variable -- SET!" var)
+        (let ((frame (first-frame env)))
+          (scan (frame-variables frame)
+                (frame-values frame)))))
+  (env-loop env))
+
+(define (define-variable! var val env)
+  (let ((frame (first-frame env)))
+    (define (scan vars vals)
+      (cond ((null? vars) (add-binding-to-frame! var val frame))
+            ((eq? var (car vars)) (set-car! vals val))
+            (else (scan (cdr vars) (cdr vals)))))
+    (scan (frame-variables frame)
+          (frame-values frame))))
+
+; assume I already have following procedures
+(define (primitive-procedure? a) true)
+(define (apply-primitive-procedure a b) true)

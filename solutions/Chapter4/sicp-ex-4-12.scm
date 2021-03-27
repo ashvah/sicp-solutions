@@ -47,7 +47,7 @@
   (env-loop env
             var
             (lambda (x y) (lambda (env var proc1 proc2) (add-binding-to-frame! var val x)))
-            (lambda (env var proc1 proc2) (add-binding-to-frame!))))
+            (lambda (x) (set-car! x (cons var val)))))
 
 (define p (make-frame '(a b c) '(1 2 3)))
 (add-binding-to-frame! 'd 4 p)

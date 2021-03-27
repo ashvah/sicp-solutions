@@ -473,6 +473,10 @@
         (list '* *)
         (list '/ /)
         (list '= =)
+        (list '> >)
+        (list '< <)
+        (list '>= >=)
+        (list '<= '<=)
         ; add more primitive procedures here
         ))
 

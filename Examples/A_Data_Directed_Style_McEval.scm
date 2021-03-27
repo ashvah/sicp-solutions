@@ -3,6 +3,8 @@
 ;---------------------------------------------------------
 ; table
 
+(display "Initializing...\n")
+
 (define (make-table)
   (let ((local-table (list '*table*)))
     (define (lookup key-1 key-2)
@@ -26,7 +28,10 @@
                       (cons (list key-1
                                   (cons key-2 value))
                             (cdr local-table)))))
-      'ok)    
+      (display key-1)
+      (display ": ")
+      (display key-2)
+      (display "\t\tdone\n"))    
     (define (dispatch m)
       (cond ((eq? m 'lookup-proc) lookup)
             ((eq? m 'insert-proc!) insert!)
@@ -47,16 +52,19 @@
       (cons (eval (first-operand exps) env)
             (list-of-values (rest-operands exps) env))))
 
-(define (operator exp) (car exp))
-(define (operands exp) (cdr exp))
+(define (operator exp) (cadr exp))
+(define (operands exp) (cddr exp))
 
 (define (no-operands? ops) (null? ops))
 (define (first-operand ops) (car ops))
 (define (rest-operands ops) (cdr ops))
 
+(define (application? exp)
+  (pair? exp))
+
 (define eval-call
   (lambda (exp env)
-    (apply (eval (operator exp) env)
+    (apply-new (eval (operator exp) env)
            (list-of-values (operands exp) env))))
 
 ; if
@@ -285,6 +293,7 @@
   (lambda (exp env) (eval (let*->nested-lets exp) env)))
 
 ; eval
+(display "\nInstalling eval...\n")
 (put 'eval 'quote eval-quote)
 (put 'eval 'set! eval-assignment)
 (put 'eval 'define eval-definition)
@@ -303,9 +312,10 @@
         ((variable? exp) (lookup-variable-value exp env))
         ((not (pair? exp)) (error "Unknown expression type -- EVAL" exp))
         (else (let ((proc (get 'eval (car exp))))
-                (if proc
-                    (proc exp env)
-                    (error "Unknown expression type -- EVAL" exp))))))
+                (cond (proc (proc exp env))
+                      ((application? exp) (apply-new (eval (car exp) env)
+                                                 (list-of-values (cdr exp) env)))
+                      (else (error "Unknown expression type -- EVAL" exp)))))))
 
 ; procedure
 (define (make-procedure parameters body env)
@@ -322,16 +332,32 @@
                                        arguments
                                        (procedure-environment procedure)))))
 
-; apply
-(put 'apply 'procedure apply-procedure)
+(define (primitive-implementation proc) (cadr proc))
 
-(define (apply procedure arguments)
-  (cond ((primitive-procedure? procedure)
-         (apply-primitive-procedure procedure arguments))
-        ((let ((proc (get 'apply (car procedure))))
-           (if proc
-               (proc procedure arguments)
-               (error "Unknown procedure type -- APPLY" procedure))))))
+(define (primitive-procedure-names)
+  (map car
+       primitive-procedures))
+
+(define (primitive-procedure-objects)
+  (map (lambda (proc) (list 'primitive (cadr proc)))
+       primitive-procedures))
+
+(define apply-in-underlying-scheme apply)
+
+(define (apply-primitive-procedure proc args)
+  (apply-in-underlying-scheme
+   (primitive-implementation proc) args))
+
+; apply
+(display "\nInstalling apply...\n")
+(put 'apply 'procedure apply-procedure)
+(put 'apply 'primitive apply-primitive-procedure)
+
+(define (apply-new procedure arguments)
+  (let ((proc (get 'apply (car procedure))))
+    (if proc
+        (proc procedure arguments)
+        (error "Unknown procedure type -- APPLY" procedure))))
 
 ;-------------------------------------------------------------------------------
 ; environment
@@ -393,6 +419,81 @@
             (else (scan (cdr frame-list)))))
     (scan (cdr frame))))
 
-; assume I already have following procedures
-(define (primitive-procedure? a) true)
-(define (apply-primitive-procedure a b) true)
+(define (traverse env)
+  (map (lambda (x)
+         (map (lambda (pair)
+                (display (car pair))
+                (display "\t")
+                (display (cdr pair))
+                (newline))
+              (cdr x)))
+       env)
+  (display "end\n"))
+
+;---------------------------------------------------------
+; UI
+
+(define input-prompt ";;; M-Eval input:")
+(define output-prompt ";;; M-Eval value:")
+
+(define (driver-loop)
+  (prompt-for-input input-prompt)
+  (let ((input (read)))
+    (let ((output (eval input the-global-environment)))
+      (announce-output output-prompt)
+      (user-print output)))
+  (driver-loop))
+
+(define (prompt-for-input string)
+  (newline) (newline) (display string) (newline))
+
+(define (announce-output string)
+  (newline) (display string) (newline))
+
+(define (compound-procedure? x) (tagged-list? x 'procedure))
+
+(define (user-print object)
+  (if (compound-procedure? object)
+      (display (list 'compound-procedure
+                     (procedure-parameters object)
+                     (procedure-body object)
+                     '<procedure-env>))
+      (display object)))
+
+;---------------------------------------------------------------
+; initialize
+
+(define primitive-procedures
+  (list (list 'car car)
+        (list 'cdr cdr)
+        (list 'cons cons)
+        (list 'null? null?)
+        (list '+ +)
+        (list '- -)
+        (list '* *)
+        (list '/ /)
+        (list '= =)
+        ; add more primitive procedures here
+        ))
+
+(define (setup-environment)
+  (let ((initial-env
+         (extend-environment (primitive-procedure-names)
+                             (primitive-procedure-objects)
+                             the-empty-environment)))
+    (define-variable! 'true true initial-env)
+    (define-variable! 'false false initial-env)
+    initial-env))
+
+(define the-global-environment (setup-environment))
+
+(display "\nInitializing environment...\n")
+
+(traverse the-global-environment)
+
+(display "\nInitialized!\n\n")
+
+;---------------------------------------------------------
+; test
+(display "Start testing:\n")
+(driver-loop)

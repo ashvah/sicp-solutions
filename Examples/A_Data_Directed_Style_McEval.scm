@@ -318,8 +318,23 @@
                       (else (error "Unknown expression type -- EVAL" exp)))))))
 
 ; procedure
+(define (scan-out-defines body)
+  (define (find-def-list exp-list)
+    (if (null? exp-list)
+        (cons '() '())
+        (let ((rest (find-def-list (cdr exp-list))))
+          (if (not (tagged-list? (car exp-list) 'define))
+              (cons (car rest) (cons (car exp-list) (cdr rest)))
+              (cons (cons (cons (definition-variable (car exp-list)) (cons (definition-value (car exp-list)) nil)) (car rest)) (cdr rest))))))
+  (let ((def-list (find-def-list body)))
+    (if (null? (car def-list))
+        body
+        (list (make-let (map (lambda (x) (list (car x) ''*unassigned*)) (car def-list))
+                        (append (map (lambda (x) (cons 'set! x)) (car def-list))
+                                (cdr def-list)))))))
+
 (define (make-procedure parameters body env)
-  (list 'procedure parameters body env))
+  (list 'procedure parameters (scan-out-defines body) env))
 
 (define (procedure-parameters p) (cadr p))
 (define (procedure-body p) (caddr p))
@@ -393,7 +408,10 @@
         (error "Unbound variable" var)
         (let ((frame (first-frame env)))
           (scan (cdr frame)))))
-  (env-loop env))
+  (let ((result (env-loop env)))
+    (if (eq? result '*unassigned*)
+        (error "Variable unassigned --LOOKUP-VARIABLE-VALUE" var)
+        result)))
 
 (define (set-variable-value! var val env)
   (define (env-loop env)

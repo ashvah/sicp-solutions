@@ -52,13 +52,13 @@
         (let ((rest (find-def-list (cdr exp-list))))
           (if (not (tagged-list? (car exp-list) 'define))
               (cons (car rest) (cons (car exp-list) (cdr rest)))
-              (cons (cons (cons (definition-variable (car exp-list)) (cons (definition-value (car exp-list)) nil)) (car rest)) (cdr rest))))))
+              (cons (cons (definition-variable (car exp-list)) (car rest))
+                    (cons (cons 'set! (cons (definition-variable (car exp-list)) (cons (definition-value (car exp-list)) nil))) (cdr rest)))))))
   (let ((def-list (find-def-list body)))
     (if (null? (car def-list))
         body
-        (list (make-let (map (lambda (x) (list (car x) ''*unassigned*)) (car def-list))
-                        (append (map (lambda (x) (cons 'set! x)) (car def-list))
-                                (cdr def-list)))))))
+        (list (make-let (map (lambda (x) (list x ''*unassigned*)) (car def-list))
+                        (cdr def-list))))))
 
 (scan-out-defines (lambda-body '(define (f x)
                                   (define (even? n)
@@ -70,13 +70,15 @@
                                         false
                                         (even? (- n 1))))
                                   (e_1)
+                                  (define (g x) (+ x 1))
                                   (e_2)
                                   )))
 
-; ((let ((even? *unassigned*) (odd? '*unassigned*))
+; ((let ((even? '*unassigned*) (odd? '*unassigned*) (g '*unassigned*))
 ;   (set! even? (lambda (n) (if (= n 0) true (odd? (- n 1)))))
 ;   (set! odd? (lambda (n) (if (= n 0) false (even? (- n 1)))))
 ;   (e_1)
+;   (set! g (lambda (x) (+ x 1)))
 ;   (e_2)))
 
 ; c) make-procudure

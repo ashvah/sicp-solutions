@@ -292,6 +292,17 @@
 (define eval-let*
   (lambda (exp env) (eval (let*->nested-lets exp) env)))
 
+; letrec
+(define (letrec->let exp)
+  (let ((vars (let-vars exp))
+        (exps (let-exps exp))
+        (body (let-body exp)))
+    (make-let (map (lambda (x) (list x ''*unassigned*)) vars)
+              (append (map (lambda (x y) (list 'set! x y)) vars exps) body))))
+
+(define (eval-letrec exp env)
+  (eval (letrec->let exp) env))
+
 ; eval
 (display "\nInstalling eval...\n")
 (put 'eval 'quote eval-quote)
@@ -306,6 +317,7 @@
 (put 'eval 'or eval-or)
 (put 'eval 'let eval-let)
 (put 'eval 'let* eval-let*)
+(put 'eval 'letrec eval-letrec)
 
 (define (eval exp env)
   (cond ((self-evaluating? exp) exp)

@@ -114,3 +114,18 @@
 ; true
 (display-bool (snd p-bool))
 ; false
+
+;--------------------------------------
+; definition of Y-combinator
+(define (fix f)
+  ((lambda (x) (lambda (y) (f (x x) y)))
+   (lambda (x) (lambda (y) (f (x x) y)))))
+
+(define fact
+  (lambda (f n)
+    (force (test (iszero? n) (delay one-nat) (delay (mul-nat n (f (pred-nat n))))))))
+
+(define (factorial n) ((fix fact) n))
+
+(display-nat (factorial five-nat))
+; 120

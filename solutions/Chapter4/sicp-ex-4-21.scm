@@ -30,6 +30,16 @@
           (else (+ (fib (- k 1)) (fib (- k 2)))))))
  10)
 
+; or
+((((lambda (f) ((lambda (x) (lambda (y) (f (x x) y)))
+                (lambda (x) (lambda (y) (f (x x) y)))))
+   (lambda (fib k)
+     (lambda (result1 result2)
+       (cond ((= k 0) result1)
+             ((= k 1) result2)
+             (else ((fib (- k 1)) result2 (+ result1 result2)))))))
+  10) 1 1)
+
 ; b)
 
 (define (f x)

@@ -133,6 +133,24 @@
           (cproc env)
           (aproc env)))))
 
+; unless
+(define (unless-pred exp)
+  (cadr exp))
+
+(define (unless-alter exp)
+  (if (not (null? (cadddr exp)))
+      (cadddr exp)
+      'false))
+
+(define (unless-cons exp)
+  (caddr exp))
+
+(define (unless->if exp)
+  (make-if (unless-pred exp) (unless-alter exp) (unless-cons exp)))
+
+(define (analyze-unless exp)
+  (analyze (unless->if exp)))
+
 ; lambda
 (define (lambda-parameters exp) (cadr exp))
 (define (lambda-body exp) (cddr exp))
@@ -242,6 +260,7 @@
 (put 'eval 'begin analyze-sequence)
 (put 'eval 'call analyze-application)
 (put 'eval 'let analyze-let)
+(put 'eval 'unless analyze-unless)
 
 (define (eval exp env)
   ((analyze exp) env))
@@ -443,9 +462,4 @@
 ;---------------------------------------------------------
 ; test
 (display "Start testing:\n")
-(eval '(define (factorial n)
-         (if (= n 1)
-             1
-             (* n (factorial (- n 1)))))
-      the-global-environment)
 (driver-loop)

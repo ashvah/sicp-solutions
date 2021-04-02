@@ -458,6 +458,7 @@
 (traverse the-global-environment)
 
 (display "\nInitialized!\n\n")
+(display "--------Separating Syntatic Analysis v2--------\n\n")
 
 ;---------------------------------------------------------
 ; test

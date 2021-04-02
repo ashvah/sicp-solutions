@@ -486,6 +486,8 @@
         (list '>= >=)
         (list '<= <=)
         (list 'inc inc)
+        (list 'dec dec)
+        (list 'list list)
         ; add more primitive procedures here
         ))
 
@@ -505,6 +507,7 @@
 (traverse the-global-environment)
 
 (display "\nInitialized!\n\n")
+(display "--------Lazy Evaluation v3--------\n\n")
 
 ;---------------------------------------------------------
 ; test

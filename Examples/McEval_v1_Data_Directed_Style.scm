@@ -525,8 +525,8 @@
 (display "\nInitializing environment...\n")
 
 (traverse the-global-environment)
-
 (display "\nInitialized!\n\n")
+(display "--------Applicative Order v1--------\n\n")
 
 ;---------------------------------------------------------
 ; test

@@ -190,6 +190,9 @@
         (error "Empty sequence -- ANALYZE"))
     (loop (car procs) (cdr procs))))
 
+(define (analyze-begin exps)
+  (analyze-sequence (begin-actions exps)))
+
 ; apply
 (define (list-of-values exps env)
   (if (no-operands? exps)
@@ -256,7 +259,7 @@
 (put 'eval 'define analyze-definition)
 (put 'eval 'if analyze-if)
 (put 'eval 'lambda analyze-lambda)
-(put 'eval 'begin analyze-sequence)
+(put 'eval 'begin analyze-begin)
 (put 'eval 'call analyze-application)
 (put 'eval 'let analyze-let)
 (put 'eval 'unless analyze-unless)
@@ -488,6 +491,8 @@
         (list 'inc inc)
         (list 'dec dec)
         (list 'list list)
+        (list 'newline newline)
+        (list 'display display)
         ; add more primitive procedures here
         ))
 
@@ -512,4 +517,5 @@
 ;---------------------------------------------------------
 ; test
 (display "Start testing:\n")
+
 (driver-loop)

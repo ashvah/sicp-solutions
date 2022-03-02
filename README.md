@@ -1,6 +1,10 @@
 ### My SICP Solutions  
 <<<<<<< HEAD
+<<<<<<< HEAD
 记录3.5/5途而废的sicp学习:  
+=======
+半途而废的sicp学习  
+>>>>>>> parent of 28b4fad (Update README.md)
 =======
 半途而废的sicp学习  
 >>>>>>> parent of 28b4fad (Update README.md)
